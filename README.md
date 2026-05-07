@@ -89,7 +89,7 @@ expense-tracker/
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/expense-tracker.git
+git clone https://github.com/youssefhany29/expense-tracker.git
 ```
 
 2. Open the project backend folder:
