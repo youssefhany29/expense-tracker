@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Expense Tracker</h1>
+
+    <div class="form-box">
+        <h2 id="formTitle">Add Expense</h2>
+
+        <input type="text" id="title" placeholder="Expense title">
+        <input type="number" id="amount" placeholder="Amount">
+        <input type="date" id="date">
+
+        <button id="addBtn" onclick="addExpense()">Add</button>
+        <button id="updateBtn" onclick="updateExpense()" style="display:none;">Update</button>
+        <button id="cancelBtn" onclick="clearForm()" style="display:none;">Cancel</button>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchTitle" placeholder="Search by title">
+        <button onclick="searchExpenses()">Search</button>
+        <button onclick="clearSearch()">Clear</button>
+    </div>
+
+    <h2>All Expenses</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <p id="message"></p>
+
+    <script src="app.js"></script>
+</body>
+</html>
