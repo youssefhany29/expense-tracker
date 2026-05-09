@@ -1,4 +1,4 @@
-const API = "http://localhost:5000/api/expenses";
+const API = "https://expense-tracker-azy1.onrender.com/api/expenses";
 
 let editingId = null;
 
