@@ -1,8 +1,9 @@
-const API = "http://localhost:5000/api/expenses";
+const API = "https://expense-tracker-azy1.onrender.com/api/expenses";
 
 let editingId = null;
 
 document.getElementById("date").value = new Date().toISOString().split("T")[0];
+
 
 function showMessage(text) {
     document.getElementById("message").textContent = text;
