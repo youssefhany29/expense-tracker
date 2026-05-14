@@ -1,49 +1,36 @@
 const API = "https://expense-tracker-azy1.onrender.com/api/expenses";
 
 let editingId = null;
+let allExpenses = [];
 
-document.getElementById("date").value = new Date().toISOString().split("T")[0];
-
-
-function showMessage(text) {
-    document.getElementById("message").textContent = text;
-}
-
-function validateForm(title, amount, date) {
-    if (!title.trim()) {
-        showMessage("Title is required");
-        return false;
-    }
-
-    if (!amount || Number(amount) <= 0) {
-        showMessage("Amount must be greater than 0");
-        return false;
-    }
-
-    if (!date) {
-        showMessage("Date is required");
-        return false;
-    }
-
-    return true;
-}
+window.onload = function () {
+    loadExpenses();
+};
 
 async function loadExpenses() {
     try {
-        const response = await fetch(API);
+        const response = await fetch(API_URL);
         const result = await response.json();
 
-        renderExpenses(result.data);
+        if (!result.success) {
+            showMessage("Failed to load expenses");
+            return;
+        }
+
+        allExpenses = result.data;
+        displayExpenses(allExpenses);
+        updateDashboard(allExpenses);
     } catch (err) {
-        showMessage("Cannot connect to server");
+        showMessage("Cannot connect to backend server");
+        console.error(err);
     }
 }
 
-function renderExpenses(expenses) {
+function displayExpenses(expenses) {
     const tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = "";
 
-    if (!expenses || expenses.length === 0) {
+    if (expenses.length === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="4">No expenses found</td>
@@ -52,15 +39,15 @@ function renderExpenses(expenses) {
         return;
     }
 
-    expenses.forEach(expense => {
+    expenses.forEach((expense) => {
         const row = document.createElement("tr");
 
         row.innerHTML = `
             <td>${expense.title}</td>
-            <td>${expense.amount}</td>
+            <td>${Number(expense.amount).toFixed(2)}</td>
             <td>${expense.date}</td>
             <td>
-                <button onclick="startEdit(${expense.id}, '${expense.title}', ${expense.amount}, '${expense.date}')">Edit</button>
+                <button onclick="editExpense(${expense.id})">Edit</button>
                 <button onclick="deleteExpense(${expense.id})">Delete</button>
             </td>
         `;
@@ -69,47 +56,88 @@ function renderExpenses(expenses) {
     });
 }
 
+function updateDashboard(expenses) {
+    const totalAmount = document.getElementById("totalAmount");
+    const averageAmount = document.getElementById("averageAmount");
+    const expenseCount = document.getElementById("expenseCount");
+    const highestExpense = document.getElementById("highestExpense");
+    const lowestExpense = document.getElementById("lowestExpense");
+
+    if (expenses.length === 0) {
+        totalAmount.textContent = "0.00";
+        averageAmount.textContent = "0.00";
+        expenseCount.textContent = "0";
+        highestExpense.textContent = "0.00";
+        lowestExpense.textContent = "0.00";
+        return;
+    }
+
+    const amounts = expenses.map((expense) => Number(expense.amount));
+
+    const total = amounts.reduce((sum, amount) => sum + amount, 0);
+    const average = total / expenses.length;
+    const highest = Math.max(...amounts);
+    const lowest = Math.min(...amounts);
+
+    totalAmount.textContent = total.toFixed(2);
+    averageAmount.textContent = average.toFixed(2);
+    expenseCount.textContent = expenses.length;
+    highestExpense.textContent = highest.toFixed(2);
+    lowestExpense.textContent = lowest.toFixed(2);
+}
+
 async function addExpense() {
-    const title = document.getElementById("title").value;
+    const title = document.getElementById("title").value.trim();
     const amount = document.getElementById("amount").value;
     const date = document.getElementById("date").value;
 
-    if (!validateForm(title, amount, date)) return;
+    if (!title || !amount || !date) {
+        showMessage("Please fill all fields");
+        return;
+    }
 
     try {
-        const response = await fetch(API, {
+        const response = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                title,
+                title: title,
                 amount: Number(amount),
-                date
+                date: date
             })
         });
 
         const result = await response.json();
 
-        if (!result.success) {
-            showMessage(result.message);
+        if (!response.ok || !result.success) {
+            showMessage(result.message || "Failed to add expense");
             return;
         }
 
+        showMessage("Expense added successfully");
         clearForm();
         loadExpenses();
-        showMessage("Expense added successfully");
     } catch (err) {
-        showMessage("Failed to add expense");
+        showMessage("Cannot connect to backend server");
+        console.error(err);
     }
 }
 
-function startEdit(id, title, amount, date) {
+function editExpense(id) {
+    const expense = allExpenses.find((item) => item.id === id);
+
+    if (!expense) {
+        showMessage("Expense not found");
+        return;
+    }
+
     editingId = id;
 
-    document.getElementById("title").value = title;
-    document.getElementById("amount").value = amount;
-    document.getElementById("date").value = date;
+    document.getElementById("title").value = expense.title;
+    document.getElementById("amount").value = expense.amount;
+    document.getElementById("date").value = expense.date;
 
     document.getElementById("formTitle").textContent = "Update Expense";
     document.getElementById("addBtn").style.display = "none";
@@ -118,76 +146,105 @@ function startEdit(id, title, amount, date) {
 }
 
 async function updateExpense() {
-    const title = document.getElementById("title").value;
+    if (!editingId) {
+        showMessage("No expense selected");
+        return;
+    }
+
+    const title = document.getElementById("title").value.trim();
     const amount = document.getElementById("amount").value;
     const date = document.getElementById("date").value;
 
-    if (!validateForm(title, amount, date)) return;
+    if (!title || !amount || !date) {
+        showMessage("Please fill all fields");
+        return;
+    }
 
     try {
-        const response = await fetch(`${API}/${editingId}`, {
+        const response = await fetch(`${API_URL}/${editingId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                title,
+                title: title,
                 amount: Number(amount),
-                date
+                date: date
             })
         });
 
         const result = await response.json();
 
-        if (!result.success) {
-            showMessage(result.message);
+        if (!response.ok || !result.success) {
+            showMessage(result.message || "Failed to update expense");
             return;
         }
 
+        showMessage("Expense updated successfully");
         clearForm();
         loadExpenses();
-        showMessage("Expense updated successfully");
     } catch (err) {
-        showMessage("Failed to update expense");
+        showMessage("Error updating expense");
+        console.error(err);
     }
 }
 
 async function deleteExpense(id) {
+    const confirmed = confirm("Are you sure you want to delete this expense?");
+
+    if (!confirmed) {
+        return;
+    }
+
     try {
-        const response = await fetch(`${API}/${id}`, {
+        const response = await fetch(`${API_URL}/${id}`, {
             method: "DELETE"
         });
 
         const result = await response.json();
 
-        if (!result.success) {
-            showMessage(result.message);
+        if (!response.ok || !result.success) {
+            showMessage(result.message || "Failed to delete expense");
             return;
         }
 
-        loadExpenses();
         showMessage("Expense deleted successfully");
+        loadExpenses();
     } catch (err) {
-        showMessage("Failed to delete expense");
+        showMessage("Error deleting expense");
+        console.error(err);
     }
 }
 
 async function searchExpenses() {
-    const title = document.getElementById("searchTitle").value;
+    const searchTitle = document.getElementById("searchTitle").value.trim();
 
     try {
-        const response = await fetch(`${API}/search?title=${encodeURIComponent(title)}`);
+        const response = await fetch(
+            `${API_URL}/search?title=${encodeURIComponent(searchTitle)}`
+        );
+
         const result = await response.json();
 
-        renderExpenses(result.data);
+        if (!response.ok || !result.success) {
+            showMessage(result.message || "Search failed");
+            return;
+        }
+
+        displayExpenses(result.data);
+        updateDashboard(result.data);
+        showMessage("Search completed");
     } catch (err) {
-        showMessage("Search failed");
+        showMessage("Error searching expenses");
+        console.error(err);
     }
 }
 
 function clearSearch() {
     document.getElementById("searchTitle").value = "";
-    loadExpenses();
+    displayExpenses(allExpenses);
+    updateDashboard(allExpenses);
+    showMessage("Search cleared");
 }
 
 function clearForm() {
@@ -195,7 +252,7 @@ function clearForm() {
 
     document.getElementById("title").value = "";
     document.getElementById("amount").value = "";
-    document.getElementById("date").value = new Date().toISOString().split("T")[0];
+    document.getElementById("date").value = "";
 
     document.getElementById("formTitle").textContent = "Add Expense";
     document.getElementById("addBtn").style.display = "inline-block";
@@ -203,4 +260,12 @@ function clearForm() {
     document.getElementById("cancelBtn").style.display = "none";
 }
 
-loadExpenses();
+function showMessage(message) {
+    const messageElement = document.getElementById("message");
+
+    messageElement.textContent = message;
+
+    setTimeout(() => {
+        messageElement.textContent = "";
+    }, 3000);
+}
