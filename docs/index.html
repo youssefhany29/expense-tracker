@@ -9,16 +9,47 @@
 
     <h1>Expense Tracker</h1>
 
+    <div class="dashboard">
+        <div class="card">
+            <h3>Total Spent</h3>
+            <p id="totalAmount">0.00</p>
+        </div>
+
+        <div class="card">
+            <h3>Average Expense</h3>
+            <p id="averageAmount">0.00</p>
+        </div>
+
+        <div class="card">
+            <h3>Number of Expenses</h3>
+            <p id="expenseCount">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Highest Expense</h3>
+            <p id="highestExpense">0.00</p>
+        </div>
+
+        <div class="card">
+            <h3>Lowest Expense</h3>
+            <p id="lowestExpense">0.00</p>
+        </div>
+    </div>
+
     <div class="form-box">
         <h2 id="formTitle">Add Expense</h2>
 
-        <input type="text" id="title" placeholder="Expense title">
-        <input type="number" id="amount" placeholder="Amount">
-        <input type="date" id="date">
+        <div class="form-row">
+            <input type="text" id="title" placeholder="Expense title">
+            <input type="number" id="amount" placeholder="Amount">
+            <input type="date" id="date">
+        </div>
 
-        <button id="addBtn" onclick="addExpense()">Add</button>
-        <button id="updateBtn" onclick="updateExpense()" style="display:none;">Update</button>
-        <button id="cancelBtn" onclick="clearForm()" style="display:none;">Cancel</button>
+        <div class="button-row">
+            <button id="addBtn" onclick="addExpense()">Add Expense</button>
+            <button id="updateBtn" onclick="updateExpense()" style="display:none;">Update</button>
+            <button id="cancelBtn" onclick="clearForm()" style="display:none;">Cancel</button>
+        </div>
     </div>
 
     <div class="search-box">
@@ -27,19 +58,21 @@
         <button onclick="clearSearch()">Clear</button>
     </div>
 
-    <h2>All Expenses</h2>
+    <div class="table-box">
+        <h2>All Expenses</h2>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 
     <p id="message"></p>
 
